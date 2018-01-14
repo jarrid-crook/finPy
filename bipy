@@ -1,0 +1,116 @@
+#!/usr/bin/python3
+
+from binance.client import Client
+import csv
+import json
+import datetime
+import os.path
+
+
+################################USER DEFINED VARIABLES###############################
+api_key = '5J'
+api_secret = '4J'
+#####################################################################################
+
+
+client = Client(api_key, api_secret)
+
+timeStamp = str(datetime.datetime.now())
+
+# temp file while this runs, replaced when finished
+
+
+###############################FUNCTIONS#############################################
+
+def convert(pair):
+
+# Pull Data For Coin Pair    
+    ticker = client.get_ticker(symbol = pair)
+    currPrice = json.dumps(ticker['lastPrice'])
+    currPriceFormat = currPrice.strip('"')
+
+
+# ETH/USDT Conversion
+    tickerETHUSDT = client.get_ticker(symbol='ETHUSDT')
+    currPriceETHUSDT = json.dumps(tickerETHUSDT['lastPrice'])
+
+
+# Coin Pair/USDT Conversion
+    currPriceConvert = float(currPriceFormat) * float(currPriceETHUSDT.strip('"'))
+    convertCoin = str(round(currPriceConvert,2))
+
+
+# Coin List
+
+    coinList = [
+      pair[:3],
+      timeStamp,
+      tickerETHUSDT['lastPrice'],
+      convertCoin,
+      ticker['highPrice'],
+      ticker['bidPrice'],
+      ticker['lowPrice'],
+      ticker['quoteVolume'],
+      ticker['volume'],
+      ticker['prevClosePrice'],
+      ticker['weightedAvgPrice'],
+      ticker['lastPrice'],
+      ticker['lastQty'],
+      ticker['openPrice'],
+      ticker['count'],
+      ticker['symbol'],
+      ticker['priceChange'],
+      ticker['askPrice'],
+      ticker['askQty'],
+      ticker['bidQty'],
+      ticker['priceChangePercent']
+               ]
+
+
+# Write Header If First Time Writing
+
+    file_exists = os.path.isfile('/home/jarrid_crook/projects/finPy/data/out.csv')
+
+    with open('/home/jarrid_crook/projects/finPy/data/out.csv', 'a') as csvfile:
+        headers = ['Coin', 'Time Stamp', 'ETH Price', 'Coin Price', 'High Price', 'Bid Price', 'Low Price',
+                   'Quote Volume', 'Volume', 'Prev Close Price', 'Weighted Avg Price', 'Last Price', 
+                   'Last Qty', 'Open Price', 'Count', 'Symbol', 'Price Change', 'Ask Price', 'Ask Qty',
+                   'Bid Qty', 'Price Change %']
+        writer = csv.DictWriter(csvfile, delimiter = '|', fieldnames=headers)
+
+        if not file_exists:
+            writer.writeheader()
+
+
+# Write To CSV
+    with open('/home/jarrid_crook/projects/finPy/data/out.csv', 'a') as csv_file:
+        writer = csv.writer(csv_file, delimiter='|')
+        writer.writerow(coinList)
+ 
+
+######################################################################################
+
+# ETH/USDT Current Price
+
+convert('ETHUSDT')
+
+# BNB/USDT Current Price
+
+convert('BNBETH')
+
+# REQ/USDT Current Price
+
+convert('REQETH')
+
+# XLM/USDT Current Price
+
+convert('XLMETH')
+
+# XRP/USDT Current Price
+
+convert('XRPETH')
+
+# TRX/USDT Current Price
+
+convert('TRXETH')
+
